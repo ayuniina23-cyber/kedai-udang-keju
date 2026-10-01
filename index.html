@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHRIMCHEE — Portal Penjual</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="bg-gray-900 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🦐🧀</span>
+
+                <span class="font-black text-xl tracking-wider text-orange-500">
+                    SHRIMCHEE
+                    <span class="text-xs text-gray-400 font-normal">
+                        | Admin Panel
+                    </span>
+                </span>
+            </div>
+
+            <span class="text-xs bg-orange-600 px-3 py-2 rounded-lg font-bold">
+                Portal Penjual
+            </span>
+
+        </div>
+    </nav>
+
+
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- EDIT PRODUK -->
+        <section class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                📝 Edit Data Produk & Stok
+            </h2>
+
+            <form id="edit-product-form"
+                  onsubmit="saveProductChanges(event)"
+                  class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase mb-1">
+                        Nama Produk
+                    </label>
+
+                    <input
+                        type="text"
+                        id="edit-title"
+                        required
+                        class="w-full border p-2.5 rounded-xl text-sm">
+                </div>
+
+
+                <div>
+                    <label class="block text-xs font-bold uppercase mb-1">
+                        Harga (Rp)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="edit-price"
+                        required
+                        class="w-full border p-2.5 rounded-xl text-sm">
+                </div>
+
+
+                <div>
+                    <label class="block text-xs font-bold uppercase mb-1">
+                        Sisa Stok (Porsi)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="edit-stock"
+                        required
+                        class="w-full border p-2.5 rounded-xl text-sm">
+                </div>
+
+
+                <div>
+                    <label class="block text-xs font-bold uppercase mb-1">
+                        URL Gambar Produk
+                    </label>
+
+                    <input
+                        type="url"
+                        id="edit-image"
+                        required
+                        class="w-full border p-2.5 rounded-xl text-sm">
+                </div>
+
+
+                <div class="md:col-span-4 flex justify-end">
+
+                    <button
+                        type="submit"
+                        class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm">
+
+                        💾 Simpan Perubahan
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+
+        <!-- PESANAN -->
+        <section class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+
+                <h2 class="text-xl font-bold">
+                    🛍️ Daftar Pesanan Masuk
+                </h2>
+
+                <button
+                    onclick="clearAllOrders()"
+                    class="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-semibold">
+
+                    Hapus Semua
+
+                </button>
+
+            </div>
+
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left text-sm">
+
+                    <thead>
+
+                        <tr class="bg-gray-100 border-b text-gray-600 uppercase text-xs">
+
+                            <th class="p-3">ID / Tanggal</th>
+
+                            <th class="p-3">Pembeli</th>
+
+                            <th class="p-3">Orderan</th>
+
+                            <th class="p-3">Metode / Total</th>
+
+                            <th class="p-3">Alamat</th>
+
+                            <th class="p-3">Bukti Transfer</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody
+                        id="orders-table-body"
+                        class="divide-y">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- MODAL BUKTI TRANSFER -->
+
+    <div
+        id="image-modal"
+        class="fixed inset-0 bg-black/70 hidden flex justify-center items-center z-50 p-4">
+
+        <div class="bg-white p-4 rounded-2xl max-w-lg w-full relative">
+
+            <button
+                onclick="closeModal()"
+                class="absolute top-2 right-2 text-gray-500 text-xl font-bold">
+
+                ×
+
+            </button>
+
+            <h3 class="font-bold text-lg mb-3">
+                Bukti Transfer
+            </h3>
+
+            <img
+                id="modal-img"
+                src=""
+                class="w-full max-h-96 object-contain rounded-lg border">
+
+        </div>
+
+    </div>
+
+
+
+<script>
+
+const DEFAULT_PRODUCT = {
+
+    title: "Udang Keju (Isi 3 Biji)",
+
+    price: 15000,
+
+    stock: 10,
+
+    image:
+    "https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=600&q=80"
+
+};
+
+
+
+function loadAdminData() {
+
+    const prodData =
+        localStorage.getItem("shrimchee_product");
+
+    const product =
+        prodData
+        ? JSON.parse(prodData)
+        : DEFAULT_PRODUCT;
+
+
+    document.getElementById("edit-title").value =
+        product.title;
+
+    document.getElementById("edit-price").value =
+        product.price;
+
+    document.getElementById("edit-stock").value =
+        product.stock;
+
+    document.getElementById("edit-image").value =
+        product.image;
+
+
+
+    const orders =
+        JSON.parse(
+            localStorage.getItem("shrimchee_orders") || "[]"
+        );
+
+
+    const tbody =
+        document.getElementById("orders-table-body");
+
+
+    if (orders.length === 0) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6"
+                    class="text-center py-6 text-gray-400">
+
+                    Belum ada pesanan masuk.
+
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    tbody.innerHTML =
+        orders.reverse().map(ord => `
+
+        <tr>
+
+            <td class="p-3">
+
+                <b>${ord.id}</b>
+
+                <br>
+
+                <small>${ord.date}</small>
+
+            </td>
+
+
+            <td class="p-3">
+
+                <b>${ord.name}</b>
+
+                <br>
+
+                <a
+                    href="https://wa.me/${ord.wa.replace(/[^0-9]/g, '')}"
+                    target="_blank"
+                    class="text-green-600">
+
+                    WhatsApp
+
+                </a>
+
+            </td>
+
+
+            <td class="p-3">
+
+                ${ord.order}
+
+                <br>
+
+                <small>
+
+                    Catatan:
+                    ${ord.notes}
+
+                </small>
+
+            </td>
+
+
+            <td class="p-3">
+
+                ${ord.paymentMethod}
+
+                <br>
+
+                <b class="text-orange-600">
+
+                    Rp ${ord.total.toLocaleString("id-ID")}
+
+                </b>
+
+            </td>
+
+
+            <td class="p-3">
+
+                ${ord.address}
+
+                <br>
+
+                <a
+                    href="${ord.maps}"
+                    target="_blank"
+                    class="text-blue-600">
+
+                    📍 Buka Maps
+
+                </a>
+
+            </td>
+
+
+            <td class="p-3">
+
+                ${
+                    ord.proof
+                    ?
+
+                    `<button
+                        onclick="viewProof('${ord.proof}')"
+                        class="bg-gray-800 text-white px-3 py-1 rounded">
+
+                        Lihat Bukti
+
+                    </button>`
+
+                    :
+
+                    `<span class="text-gray-400">
+
+                        Tidak ada
+
+                    </span>`
+                }
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+
+function saveProductChanges(e) {
+
+    e.preventDefault();
+
+
+    const updatedProduct = {
+
+        title:
+        document.getElementById("edit-title").value,
+
+        price:
+        parseInt(
+            document.getElementById("edit-price").value
+        ),
+
+        stock:
+        parseInt(
+            document.getElementById("edit-stock").value
+        ),
+
+        image:
+        document.getElementById("edit-image").value
+
+    };
+
+
+    localStorage.setItem(
+        "shrimchee_product",
+        JSON.stringify(updatedProduct)
+    );
+
+
+    alert(
+        "Data produk berhasil diperbarui!"
+    );
+
+
+    loadAdminData();
+
+}
+
+
+
+function viewProof(image) {
+
+    document.getElementById("modal-img").src =
+        image;
+
+    document
+        .getElementById("image-modal")
+        .classList.remove("hidden");
+
+}
+
+
+
+function closeModal() {
+
+    document
+        .getElementById("image-modal")
+        .classList.add("hidden");
+
+}
+
+
+
+function clearAllOrders() {
+
+    if (
+        confirm(
+            "Apakah Anda yakin ingin menghapus seluruh pesanan?"
+        )
+    ) {
+
+        localStorage.removeItem(
+            "shrimchee_orders"
+        );
+
+        loadAdminData();
+
+    }
+
+}
+
+
+
+window.addEventListener(
+    "storage",
+    loadAdminData
+);
+
+
+loadAdminData();
+
+</script>
+
+</body>
+</html>
